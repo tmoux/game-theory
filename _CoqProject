@@ -1,0 +1,5 @@
+-R ./theories GameTheory
+
+./theories/ImpartialGame.v
+./theories/SumGames.v
+./theories/xor.v

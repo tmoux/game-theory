@@ -1,0 +1,9 @@
+html/
+.Makefile.coq.d
+Makefile.coq.conf
+**.vo
+**.vok
+**.vos
+**.glob
+**.aux
+**.lia.cache
