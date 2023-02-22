@@ -1,4 +1,5 @@
-From GameTheory Require Import ImpartialGame SumGames Bijection Equiv xor.
+From GameTheory Require Import ImpartialGame xor SumGames.
+(* From GameTheory Require Import SumGames Bijection Equiv. *)
 From Coq Require Import BinNat Nnat.
 Require Import Lia.
 
@@ -63,12 +64,13 @@ Lemma nim_0_losing : get_outcome_b (Nim 0) 0 = false.
   reflexivity.
 Qed.
 
+(*
 Theorem nim_zero_is_zero : Nim 0 == zero.
   unfold equivalent.
   apply sum_losing_is_losing; simpl.
   constructor; intros. inversion H.
   constructor; intros. inversion H.
-Qed.
+Qed. *)
 (* Set Printing Coercions. *)
 Check N.
 Check N_of_nat.
@@ -348,7 +350,7 @@ Theorem nim_sum_losing_3 :
       match goal with
       | H : valid_move _ ?x ?y |- _ => subst; apply a_not_in_moves in H; contradiction H
       end.
-    + inversion H0; subst.
+    + inversion H1; subst.
       destruct (winning_or_losing (((Nim x ~+~ Nim y) ~+~ Nim z)) (A, B, c)); auto.
       apply Hm' in l.
       assert (c = C).
