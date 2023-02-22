@@ -1,4 +1,4 @@
-From GameTheory Require Import ImpartialGame xor SumGames.
+From GameTheory Require Import ImpartialGame xor SumGames Equiv.
 (* From GameTheory Require Import SumGames Bijection Equiv. *)
 From Coq Require Import BinNat Nnat.
 Require Import Lia.
@@ -366,13 +366,22 @@ Qed.
 Theorem nim_sum_equiv :
   forall x y, (Nim x) ~+~ (Nim y) == Nim (N.lxor x y).
   intros.
-  unfold equivalent.
+  unfold equiv.
   apply nim_sum_losing_3.
   simpl.
   XorSolver.boolgroup_rw N.lxor 0%N.
 Qed.
 
 Print nim_sum_equiv.
+
+Lemma nim_zero_is_zero : Nim 0 == zero.
+  unfold equiv.
+  constructor; intros s H.
+  apply moves_in_game_sum in H.
+  destruct H as [[? ?] | [? ?]]; simpl in *.
+  inversion H.
+  inversion H.
+Qed.
 
 Definition sum_list := fold_right sum_game zero.
 Theorem nim_sum_list :
@@ -385,4 +394,4 @@ Theorem nim_sum_list :
   apply nim_sum_equiv.
 Qed.
 
-Check N.testbit_spec.
+Print Assumptions nim_sum_list.

@@ -331,26 +331,14 @@ Definition extract_outcome {game : impartial_game} {s : position game} (outcome 
   end.
 
 
-
-Definition game_as_cg : impartial_game.
-  refine ({| position := game;
-             moves := moves_from_game |}).
-  constructor. constructor.
-  (* ... *)
-Admitted.
-
-Fixpoint map_In {A B} (l : list A) : (forall x, In x l -> B) -> list B :=
-  match l with
-    | [] => fun _ => []
-    | x :: l' => fun f =>
-                   f x (or_introl _ eq_refl)
-                     :: map_In l' (fun x P => f x (or_intror _ P))
-  end.
-
-Definition map_game {A} (cg : impartial_game)
-                    (pos : position cg)
-                    (f : forall pos', valid_move cg pos' pos -> A) : list A :=
-  map_In (moves cg pos) (fun pos' P => f pos' P).
+Definition zero : impartial_game.
+  refine {|
+    position := unit;
+    start := tt;
+    moves s := [];
+  |}.
+  constructor; intros y H; inversion H.
+Defined.
 
 (*
 Definition embed_in_game cg (pos : position cg) : game :=

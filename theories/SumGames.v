@@ -35,7 +35,7 @@ Definition sum_game (a b : impartial_game) : impartial_game.
   apply cg_pair_order_wf.
 Defined.
 
-Notation "a ~+~ b" := (sum_game a b) (at level 30).
+Notation "a ~+~ b" := (sum_game a b) (at level 31, left associativity).
 
 Lemma moves_in_game_sum : forall a b (s s' : position (a ~+~ b)),
     valid_move (a ~+~ b) s' s <->
