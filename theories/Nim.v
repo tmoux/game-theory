@@ -105,21 +105,21 @@ Lemma xor_pos_3 : forall x p a b c,
   rewrite Heqb0, Heqb1, Heqb2 in H1. simpl in H1. discriminate.
 Qed.
 
-Lemma lt_nat_n_equiv : forall x y, (x < y)%N <-> (N.to_nat x < N.to_nat y)%nat.
+Lemma lt_nat_n_equiv : forall x y, (x < y) <-> (N.to_nat x < N.to_nat y)%nat.
   lia.
 Qed.
 
 Lemma log2_bits_diff_lt : forall k A B,
-    (forall m, (k < m)%N -> N.testbit A m = false) ->
-    (forall m, (k < m)%N -> N.testbit B m = false) ->
+    (forall m, (k < m) -> N.testbit A m = false) ->
+    (forall m, (k < m) -> N.testbit B m = false) ->
     N.testbit A k = false ->
     N.testbit B k = true ->
-    (A < B)%N.
+    (A < B).
   intros.
   destruct A eqn:?.
   destruct B; intuition; constructor.
   assert (N.log2 B = k). apply N.log2_bits_unique; auto.
-  assert (N.log2 A < k)%N.
+  assert (N.log2 A < k).
   pose proof (N.lt_trichotomy (N.log2 A) k).
   destruct H4 as [Hlt | [Heq | Hgt]].
   auto.
@@ -137,12 +137,12 @@ Qed.
 
 Lemma sub_pow2 : forall A n,
     N.testbit A n = true ->
-    N.testbit (A - 2 ^ n)%N n = false /\
-    forall k, k <> n -> N.testbit (A - 2 ^ n)%N k = N.testbit A k.
+    N.testbit (A - 2 ^ n) n = false /\
+    forall k, k <> n -> N.testbit (A - 2 ^ n) k = N.testbit A k.
   intros.
-  assert (Hc : N.ldiff (2 ^ n) A = 0%N).
+  assert (Hc : N.ldiff (2 ^ n) A = 0).
   {
-    rewrite N.bits_inj with _ 0%N. reflexivity.
+    rewrite N.bits_inj with _ 0. reflexivity.
     unfold N.eqf; intros.
     rewrite N.ldiff_spec.
     destruct (N.eq_decidable n0 n).
@@ -160,14 +160,14 @@ Lemma sub_pow2 : forall A n,
 Qed.
 
 Definition P (A B k : N) : Prop :=
-  (N.log2 A < N.log2 B + k)%N \/
+  (N.log2 A < N.log2 B + k) \/
     exists a b,
-      (forall m, (N.log2 A - k < m)%N -> N.testbit a m = false) /\
-        (forall m, (N.log2 A - k < m)%N -> N.testbit b m = false) /\
-        (forall m, (N.log2 B < m)%N -> N.testbit a m = N.testbit b m) /\
+      (forall m, (N.log2 A - k < m) -> N.testbit a m = false) /\
+        (forall m, (N.log2 A - k < m) -> N.testbit b m = false) /\
+        (forall m, (N.log2 B < m) -> N.testbit a m = N.testbit b m) /\
         N.testbit a (N.log2 B) = false /\
         N.testbit b (N.log2 B) = true /\
-        ((a < b)%N -> (N.lxor A B < A)%N).
+        ((a < b) -> (N.lxor A B < A)).
 
 Lemma Hind : forall A B, P A B 0 -> forall k, P A B k.
   intros A B P0.
@@ -175,26 +175,26 @@ Lemma Hind : forall A B, P A B 0 -> forall k, P A B k.
   - intros n IH.
     destruct IH as [IH | [A' [B' [? [? [? [? [? ?]]]]]]]].
     left. lia.
-    destruct (N.lt_decidable (N.log2 A) (N.log2 B + N.succ n)%N).
+    destruct (N.lt_decidable (N.log2 A) (N.log2 B + N.succ n)).
     left. lia.
     right.
-    destruct (N.testbit A' (N.log2 A - n)%N) eqn:?.
+    destruct (N.testbit A' (N.log2 A - n)) eqn:?.
     + pose proof (Heqb).
       rewrite H1 in H6; [| lia].
-      exists (A' - (2 ^ (N.log2 A - n)))%N, (B' - (2 ^ (N.log2 A - n)))%N.
-      pose proof (sub_pow2 A' (N.log2 A - n)%N) as HA'.
+      exists (A' - (2 ^ (N.log2 A - n))), (B' - (2 ^ (N.log2 A - n))).
+      pose proof (sub_pow2 A' (N.log2 A - n)) as HA'.
       apply HA' in Heqb.
-      pose proof (sub_pow2 B' (N.log2 A - n)%N) as HB'.
+      pose proof (sub_pow2 B' (N.log2 A - n)) as HB'.
       apply HB' in H6. clear HA' HB'.
       rename Heqb into HA', H6 into HB'.
       destruct HA' as [HA1 HA2].
       destruct HB' as [HB1 HB2].
       intuition.
-      * assert (m = (N.log2 A - n)%N \/ (m > N.log2 A - n)%N). lia.
+      * assert (m = (N.log2 A - n) \/ (m > N.log2 A - n)). lia.
         destruct H7. subst. assumption. rewrite HA2. apply H; lia. lia.
-      * assert (m = (N.log2 A - n)%N \/ (m > N.log2 A - n)%N). lia.
+      * assert (m = (N.log2 A - n) \/ (m > N.log2 A - n)). lia.
         destruct H7. subst. assumption. rewrite HB2. apply H0; lia. lia.
-      * destruct (N.eq_decidable m (N.log2 A - n)%N).
+      * destruct (N.eq_decidable m (N.log2 A - n)).
         subst. rewrite HA1. rewrite HB1. reflexivity.
         rewrite HA2, HB2; try lia. apply H1; assumption.
       * rewrite HA2. apply H2. lia.
@@ -202,27 +202,27 @@ Lemma Hind : forall A B, P A B 0 -> forall k, P A B k.
       * apply H4. lia.
     + exists A', B'.
       intuition.
-      assert (m = (N.log2 A - n)%N \/ (m > N.log2 A - n)%N). lia.
+      assert (m = (N.log2 A - n) \/ (m > N.log2 A - n)). lia.
       destruct H7; [subst; auto | apply H; lia ].
-      assert (m = (N.log2 A - n)%N \/ (m > N.log2 A - n)%N). lia.
+      assert (m = (N.log2 A - n) \/ (m > N.log2 A - n)). lia.
       destruct H7.
       rewrite H1 in Heqb; [ subst; assumption | lia ].
       apply H0; lia.
 Qed.
 
 Lemma xor_lt : forall A B,
-    (B <> 0)%N ->
+    (B <> 0) ->
     N.testbit A (N.log2 B) = true ->
-    (N.lxor A B < A)%N.
+    (N.lxor A B < A).
   intros.
   pose proof (N.bits_above_log2 B).
   pose proof (N.bits_above_log2 A).
-  assert (forall m, (N.log2 B < m)%N -> N.testbit (N.lxor A B) m = N.testbit A m).
+  assert (forall m, (N.log2 B < m) -> N.testbit (N.lxor A B) m = N.testbit A m).
   { intros m Hm. rewrite N.lxor_spec. rewrite H1; auto. rewrite xorb_false_r. reflexivity. }
   assert (N.testbit (N.lxor A B) (N.log2 B) = false).
   { rewrite N.lxor_spec. rewrite H0. rewrite N.bit_log2; auto. }
 
-  assert (N.log2 B <= N.log2 A)%N.
+  assert (N.log2 B <= N.log2 A).
   { destruct (N.le_decidable (N.log2 B) (N.log2 A)); auto.
   pose proof (N.bits_above_log2 A (N.log2 B)).
   rewrite H6 in H0. discriminate. lia.
@@ -234,15 +234,15 @@ Lemma xor_lt : forall A B,
          specialize H3 with m. rewrite H2 in H3. apply H3. lia. lia.
          apply H2. lia. }
 
-  pose proof (Hind A B P0 (N.log2 A - N.log2 B)%N).
+  pose proof (Hind A B P0 (N.log2 A - N.log2 B)).
   destruct H6 as [H6 | [A' [B' [? [? [? [? [? ?]]]]]]]]; [ lia | ].
   apply H11.
-  replace (N.log2 A - (N.log2 A - N.log2 B))%N with (N.log2 B) in *; [| lia].
+  replace (N.log2 A - (N.log2 A - N.log2 B)) with (N.log2 B) in *; [| lia].
   apply log2_bits_diff_lt with (N.log2 B); auto.
 Qed.
 
 Lemma nim_xor_move (x : N) : forall A B,
-    (B <> 0)%N ->
+    (B <> 0) ->
     N.testbit A (N.log2 B) = true ->
     valid_move (Nim x) (N.lxor A B) A.
   intros.
@@ -263,12 +263,12 @@ Qed.
 (* since it has a strictly lower log2 value. *)
 (* This makes the xor zero, so by the IH, the state is losing. *)
 Theorem nim_sum_losing_3 :
-  forall x y z, losing_state ((Nim x) ~+~ (Nim y) ~+~ (Nim z)) (x, y, z) <-> (N.lxor (N.lxor x y) z) = 0%N.
+  forall x y z, losing_state ((Nim x) ~+~ (Nim y) ~+~ (Nim z)) (x, y, z) <-> (N.lxor (N.lxor x y) z) = 0.
   intros.
   enough (forall s : position ((Nim x ~+~ Nim y) ~+~ Nim z),
              match s with
              | (a, b, c) => losing_state ((Nim x ~+~ Nim y) ~+~ Nim z) (a, b, c) <->
-                                     N.lxor (N.lxor a b) c = 0%N end).
+                                     N.lxor (N.lxor a b) c = 0 end).
   specialize H with (x, y, z). apply H.
   apply (well_founded_induction (finite_game ((Nim x ~+~ Nim y) ~+~ Nim z))).
   intros [[A B] C] IH.
@@ -289,7 +289,7 @@ Theorem nim_sum_losing_3 :
       specialize IH with (N.lxor A (N.pos p), B, C).
       apply IH; auto.
       rewrite <- Heqn.
-      XorSolver.boolgroup_rw N.lxor 0%N.
+      XorSolver.boolgroup_rw N.lxor 0.
     + apply (nim_xor_move y) in Hp; [| discriminate ].
       match goal with
       | |- winning_state ?g ?cur => assert (Hv : valid_move g (A, N.lxor B (N.pos p), C) cur);
@@ -301,7 +301,7 @@ Theorem nim_sum_losing_3 :
       specialize IH with (A, N.lxor B (N.pos p), C).
       apply IH; auto.
       rewrite <- Heqn.
-      XorSolver.boolgroup_rw N.lxor 0%N.
+      XorSolver.boolgroup_rw N.lxor 0.
     + apply (nim_xor_move z) in Hp; [| discriminate ].
       match goal with
       | |- winning_state ?g ?cur => assert (Hv : valid_move g (A, B, N.lxor C (N.pos p)) cur);
@@ -312,7 +312,7 @@ Theorem nim_sum_losing_3 :
       specialize IH with (A, B, N.lxor C (N.pos p)).
       apply IH; auto.
       rewrite <- Heqn.
-      XorSolver.boolgroup_rw N.lxor 0%N.
+      XorSolver.boolgroup_rw N.lxor 0.
     (* Lemma: since p is positive, one of A, B, C has the same highest bit as p. *)
     (* WLOG suppose it's A. Then change A to (A ^ (A ^ B ^ C)). *)
     (* First of all, this is a valid move, since the log2 of (A ^ B ^ C) is the same *)
@@ -336,7 +336,7 @@ Theorem nim_sum_losing_3 :
     { apply N.lxor_eq_0_iff. rewrite <- N.lxor_0_r.
       rewrite <- l at 1; rewrite <- H at 1.
       (* Tedious goal: kill with boolgroup tactic. *)
-      XorSolver.boolgroup_rw N.lxor 0%N. }
+      XorSolver.boolgroup_rw N.lxor 0. }
       match goal with
       | H : valid_move _ ?x ?y |- _ => subst; apply a_not_in_moves in H; contradiction H
       end.
@@ -346,7 +346,7 @@ Theorem nim_sum_losing_3 :
       { apply N.lxor_eq_0_iff. rewrite <- N.lxor_0_r.
         rewrite <- l at 1; rewrite <- H at 1.
         (* Tedious goal: kill with boolgroup tactic. *)
-        XorSolver.boolgroup_rw N.lxor 0%N. }
+        XorSolver.boolgroup_rw N.lxor 0. }
       match goal with
       | H : valid_move _ ?x ?y |- _ => subst; apply a_not_in_moves in H; contradiction H
       end.
@@ -357,7 +357,7 @@ Theorem nim_sum_losing_3 :
       { apply N.lxor_eq_0_iff. rewrite <- N.lxor_0_r.
         rewrite <- l at 1; rewrite <- H at 1.
         (* Tedious goal: kill with boolgroup tactic. *)
-        XorSolver.boolgroup_rw N.lxor 0%N. }
+        XorSolver.boolgroup_rw N.lxor 0. }
       match goal with
       | H : valid_move _ ?x ?y |- _ => subst; apply a_not_in_moves in H; contradiction H
       end.
@@ -369,7 +369,7 @@ Theorem nim_sum_equiv :
   unfold equiv.
   apply nim_sum_losing_3.
   simpl.
-  XorSolver.boolgroup_rw N.lxor 0%N.
+  XorSolver.boolgroup_rw N.lxor 0.
 Qed.
 
 Print nim_sum_equiv.
@@ -385,7 +385,7 @@ Qed.
 
 Definition sum_list := fold_right sum_game zero.
 Theorem nim_sum_list :
-  forall (l : list N), sum_list (map Nim l) == Nim (fold_right N.lxor 0%N l).
+  forall (l : list N), sum_list (map Nim l) == Nim (fold_right N.lxor 0 l).
   induction l.
   simpl.
   symmetry; apply nim_zero_is_zero.
