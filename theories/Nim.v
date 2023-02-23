@@ -393,3 +393,8 @@ Theorem nim_sum_list :
 Qed.
 
 Print Assumptions nim_sum_list.
+
+Goal (Nim 1 ~+~ Nim 2 ~+~ Nim 3 == Nim 0).
+  repeat (rewrite nim_sum_equiv).
+  simpl.
+  reflexivity.

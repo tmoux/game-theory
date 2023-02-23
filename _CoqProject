@@ -2,6 +2,7 @@
 
 ./theories/ImpartialGame.v
 ./theories/SumGames.v
+./theories/Bijection.v
 ./theories/Equiv.v
 ./theories/xor.v
 ./theories/Nim.v
