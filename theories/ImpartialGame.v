@@ -105,8 +105,6 @@ then either there is s such that Q s, or we have P s for all s.
     existsb_In (moves game s)
       (fun (x : position game) (HIn : In x (moves game s)) => negb (F x HIn))).
 
-  Print get_outcome_b.
-
   Lemma existsb_In_existsb {A : Type} :
     forall (l : list A)
            (f : forall x, In x l -> bool)
@@ -167,7 +165,6 @@ then either there is s such that Q s, or we have P s for all s.
     intuition.
   Qed.
 
-  Print Opaque Dependencies get_outcome_b.
   Lemma get_outcome_b_unfold : forall (s : S),
     get_outcome_b s = existsb_In (moves game s) (fun x P => negb (get_outcome_b x)).
     intros.
@@ -306,8 +303,6 @@ Fixpoint is_winning_game (g : game) : bool :=
       existsb (fun x => negb (is_winning_game x)) moves
   end.
 
-Print is_winning_game.
-
 (* Example of a game: nim. *)
 Fixpoint nim (n : nat) : game :=
   let moves := (fix f (m : nat) :=
@@ -319,8 +314,6 @@ Fixpoint nim (n : nat) : game :=
 
 Eval vm_compute in is_winning_game (nim 11).
 
-
-Print is_winning_game.
 
 
 Check get_outcome.

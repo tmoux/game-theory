@@ -41,4 +41,15 @@ Lemma moves_in_game_sum : forall a b (s s' : position (a ~+~ b)),
     valid_move (a ~+~ b) s' s <->
       (valid_move a (fst s') (fst s) /\ snd s' = snd s) \/
       (valid_move b (snd s') (snd s) /\ fst s' = fst s).
-Admitted.
+  intros.
+  split; intros; destruct s, s'.
+  - unfold valid_move in H. simpl in H.
+    apply in_app_or in H.
+    destruct H; rewrite in_map_iff in H; destruct H as [x [H1 H2]];
+    [ left | right ]; inversion H1; subst; auto.
+  - simpl in *.
+    unfold valid_move. simpl.
+    apply in_or_app.
+    destruct H as [[H1 H2] | [H1 H2]]; subst;
+      [ left | right ]; apply in_map_iff; [ exists p1 | exists p2 ]; auto.
+Qed.

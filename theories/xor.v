@@ -293,7 +293,6 @@ Lemma test : forall (a b c : A) (g : A -> A), a + b + (g a) + c + (g (g b)) + b 
   boolgroup.
 Qed.
 
-Print test.
 Check reflect.
 
 Lemma test1 : forall a b, a + b + b + a = e.
@@ -315,11 +314,6 @@ Lemma test2' : forall (a b c : A), c + b + a + a + b + c = e.
   autorewrite with algebra.
   reflexivity.
 Qed.
-
-Print test2.
-Print test2'.
-
-Print test1.
 
 Theorem comm' : forall a b, a + b = b + a.
   intros; boolgroup.
@@ -361,14 +355,11 @@ Print xor_lemma.
 
 Check nat_of_N.
 
-
-Search "lxor".
 Check N.lxor_comm.
 
 Check N.testbit.
 Check N.lxor_spec.
 
-Check N.lxor.
 Goal forall x, N.lxor x x = 0%N.
   apply N.lxor_nilpotent.
 Qed.
@@ -376,11 +367,8 @@ Qed.
 Goal forall x y z, N.lxor (N.lxor x y) z = N.lxor x (N.lxor y z).
   intros. auto.
 
-  Search N.lxor.
   apply N.lxor_assoc.
 
 Qed.
-
-Search N.lxor.
 
 Compute (N.lxor (N.lxor 1%N 2%N) 3%N).

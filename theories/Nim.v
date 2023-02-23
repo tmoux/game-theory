@@ -372,8 +372,6 @@ Theorem nim_sum_equiv :
   XorSolver.boolgroup_rw N.lxor 0.
 Qed.
 
-Print nim_sum_equiv.
-
 Lemma nim_zero_is_zero : Nim 0 == zero.
   unfold equiv.
   constructor; intros s H.
