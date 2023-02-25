@@ -2,6 +2,7 @@ From GameTheory Require Import ImpartialGame.
 Require Import Coq.Init.Wf.
 Require Import Coq.Wellfounded.Lexicographic_Product.
 Require Import Coq.Relations.Relation_Operators.
+Import Relation_Definitions.
 
 Definition cg_pair_order {cg1 cg2} :=
   symprod _ _ (valid_move cg1) (valid_move cg2).
@@ -55,13 +56,60 @@ Proof.
       [ left | right ]; apply in_map_iff; [ exists p1 | exists p2 ]; auto.
 Qed.
 
+(* Transitive closure of relation adapted from https://madiot.fr/pso/tp6.html *)
+Inductive trans {A} (R : relation A) : relation A :=
+  | rel_same : forall x y, R x y -> trans R x y
+  | rel_trans : forall x y z, R x y -> R y z -> trans R x z.
+
+(* TODO: Understand what is going on here. *)
+Lemma Acc_trans (A : Type) (R : relation A) :
+  forall x, Acc R x -> Acc (trans R) x.
+Proof.
+  intros.
+  induction H.
+  constructor; intros.
+  induction H1; auto.
+  eapply Acc_inv.
+  apply H0.
+  apply H2.
+  constructor. auto.
+Qed.
+
+Theorem wf_trans : forall (A : Type) (R : relation A),
+  well_founded R -> well_founded (trans R).
+Proof.
+  intros A R W x; apply Acc_trans, W.
+Qed.
+
+(* In this proof, we need to go back two steps, not just one. *)
+(* Therefore inducting on the Wf relation of a + b does not give us a strong enough induction principle. *)
+(* Instead we define the transitive closure of this relation, and then prove it is well-founded. *)
+(* Then we use this as our induction principle. *)
 Lemma sum_losing_is_losing : forall a b x y,
     losing_state a x ->
     losing_state b y ->
     losing_state (a ~+~ b) (x, y).
 Proof.
-  intros.
-Admitted.
+  intros a b.
+  enough (forall s, losing_state a (fst s) ->
+                    losing_state b (snd s) ->
+                    losing_state (a ~+~ b) s) by auto.
+  refine (well_founded_induction (wf_trans _ _ (finite_game (a ~+~ b))) _ _); intros [x y] IH ? ?; simpl in *.
+  constructor; intros.
+  apply moves_in_game_sum in H1 as [[? ?] | [? ?]]; destruct s'; simpl in *; subst.
+  - inversion H; subst. specialize H2 with p.
+    destruct H2; auto.
+    apply trans_to_losing with (s', y).
+    apply moves_in_game_sum; left; auto.
+    apply IH; auto.
+    apply rel_trans with (s, y); repeat (apply moves_in_game_sum; left; auto).
+  - inversion H0; subst. specialize H2 with p0.
+    destruct H2; auto.
+    apply trans_to_losing with (x, s').
+    apply moves_in_game_sum; right; auto.
+    apply IH; auto.
+    apply rel_trans with (x, s); repeat (apply moves_in_game_sum; right; auto).
+Qed.
 
 Lemma z_plus_z_is_losing : forall z, losing_state (z ~+~ z) (start z, start z).
 Proof.
