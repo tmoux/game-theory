@@ -79,11 +79,6 @@ Check N.lxor.
 Compute (N.lxor 3 4).
 Check Nim.
 
-(* We probably don't need this, it's supersided by the nim_sum_losing_3 theorem.
-Theorem nim_sum_losing :
-  forall x y, losing_state ((Nim x) ~+~ (Nim y)) (x, y) <-> x = y.
-Admitted. *)
-
 (* Coercion N.of_nat : nat >-> N. *)
 (* Coercion N.to_nat : N >-> nat. *)
 
@@ -392,9 +387,11 @@ Theorem nim_sum_list :
   apply nim_sum_equiv.
 Qed.
 
+Print Assumptions nim_sum_equiv.
 Print Assumptions nim_sum_list.
 
 Goal (Nim 1 ~+~ Nim 2 ~+~ Nim 3 == Nim 0).
   repeat (rewrite nim_sum_equiv).
   simpl.
   reflexivity.
+Qed.

@@ -243,44 +243,6 @@ then either there is s such that Q s, or we have P s for all s.
 
 End Winning.
 
-(*
-Goal winning_state (Nim 0) 1.
-  assert (H1: get_outcome_b (Nim 0) 1 = true).
-  reflexivity.
-  assert (H : reflect (winning_state (Nim 0) 1) (get_outcome_b (Nim 0) 1)).
-  apply w_reflect.
-  destruct H as [H | H].
-  assumption.
-  discriminate.
-Qed. *)
-
-(*
-  apply (well_founded_induction (finite_game game)); intuition.
-  destruct (get_outcome_b game x) eqn:E.
-  - constructor. rewrite get_outcome_b_unfold in E.
-    assert (exists y, get_outcome_b game y = false) as [y H]. admit.
-    assert (valid_move game y x). admit.
-    econstructor. apply H0. destruct (X y); auto. discriminate.
-    (* If a state is not winning, it is losing. *)
-    rewrite losing_equiv_not_winning. assumption.
-
-  - constructor. admit.
-Admitted. *)
-
-
-(* Demonstration of using the unfolding lemma.
-Goal forall n, get_outcome_b (Nim 0) (S n) = true.
-  intros n.
-  rewrite get_outcome_b_unfold.
-  simpl.
-  induction n.
-  reflexivity.
-  simpl.
-  rewrite IHn.
-  rewrite orb_true_r.
-  reflexivity.
-Qed. *)
-
 Inductive game := Game {
                       moves_from_game : list game
                     }.

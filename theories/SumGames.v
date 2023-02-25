@@ -41,6 +41,7 @@ Lemma moves_in_game_sum : forall a b (s s' : position (a ~+~ b)),
     valid_move (a ~+~ b) s' s <->
       (valid_move a (fst s') (fst s) /\ snd s' = snd s) \/
       (valid_move b (snd s') (snd s) /\ fst s' = fst s).
+Proof.
   intros.
   split; intros; destruct s, s'.
   - unfold valid_move in H. simpl in H.
@@ -52,4 +53,44 @@ Lemma moves_in_game_sum : forall a b (s s' : position (a ~+~ b)),
     apply in_or_app.
     destruct H as [[H1 H2] | [H1 H2]]; subst;
       [ left | right ]; apply in_map_iff; [ exists p1 | exists p2 ]; auto.
+Qed.
+
+Lemma sum_losing_is_losing : forall a b x y,
+    losing_state a x ->
+    losing_state b y ->
+    losing_state (a ~+~ b) (x, y).
+Proof.
+  intros.
+Admitted.
+
+Lemma z_plus_z_is_losing : forall z, losing_state (z ~+~ z) (start z, start z).
+Proof.
+  intros z.
+  enough (forall s, losing_state (z ~+~ z) (s, s)) by easy.
+  refine (well_founded_induction (finite_game z) _ _); intros a IH.
+  constructor; intros.
+  destruct s'.
+  apply moves_in_game_sum in H as [[? ?] | [? ?]]; simpl in *; subst.
+  - apply trans_to_losing with (p, p).
+    apply moves_in_game_sum; right; auto.
+    apply IH; auto.
+  - apply trans_to_losing with (p0, p0).
+    apply moves_in_game_sum; left; auto.
+    apply IH; auto.
+Qed.
+
+Lemma sum_losing_then_losing : forall x y,
+    losing_state (x ~+~ y) (start x, start y) ->
+    losing_state x (start x) ->
+    losing_state y (start y).
+Proof.
+  intros.
+  destruct (winning_or_losing y (start y)); auto.
+  destruct w.
+  pose proof (sum_losing_is_losing _ _ (start x) s').
+  exfalso; apply (not_both_winning_losing (x ~+~ y) (start x, s')).
+  intuition.
+  inversion H; subst.
+  apply (H4 (start x, s')).
+  apply moves_in_game_sum; right; auto.
 Qed.
