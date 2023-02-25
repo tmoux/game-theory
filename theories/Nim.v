@@ -1,5 +1,4 @@
-From GameTheory Require Import ImpartialGame xor SumGames Equiv.
-(* From GameTheory Require Import SumGames Bijection Equiv. *)
+From GameTheory Require Import ImpartialGame Boolgroup SumGames Equiv.
 From Coq Require Import BinNat Nnat.
 Require Import Lia.
 

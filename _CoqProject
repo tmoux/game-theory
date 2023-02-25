@@ -4,5 +4,5 @@
 ./theories/SumGames.v
 ./theories/Bijection.v
 ./theories/Equiv.v
-./theories/xor.v
+./theories/Boolgroup.v
 ./theories/Nim.v
