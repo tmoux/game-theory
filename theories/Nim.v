@@ -44,6 +44,21 @@ Definition Nim (n : N) : impartial_game.
   apply IHx. rewrite Nat2N.id. assumption.
 Defined.
 
+(* This is really dumb, just rewrite everything using nats. *)
+Corollary nim_moves_spec :
+  forall {m} (n n' : N),
+    valid_move (Nim m) n' n <-> n' < n.
+  intros.
+  unfold valid_move.
+  rewrite <- (N2Nat.id n').
+  rewrite <- (N2Nat.id n).
+  transitivity (N.to_nat n' < N.to_nat n)%nat.
+  simpl.
+  rewrite Nat2N.id.
+  apply nums_lt_spec.
+  lia.
+Qed.
+
 Corollary a_not_in_moves :
   forall {m} (n : N), valid_move (Nim m) n n -> False.
   intros.
