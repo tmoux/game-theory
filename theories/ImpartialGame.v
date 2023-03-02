@@ -12,37 +12,6 @@ Inductive impartial_game :=
     }.
 Check ImpartialGame.
 
-(*
-Fixpoint nums_lt (n : nat) : list nat :=
-  match n with
-  | 0 => []
-  | S n' => n' :: nums_lt n'
-  end.
-
-Definition Nim (n : nat) : impartial_game.
-  refine {|
-           position := nat;
-           start := n;
-           moves := fun x => nums_lt x;
-           finite_game := _
-         |}.
-  unfold well_founded.
-  induction a.
-  constructor. simpl. intuition.
-  constructor. simpl. intuition.
-  rewrite <- H0. assumption.
-  apply IHa. assumption.
-Defined. *)
-
-(* Weird recursive definition of winning. Seems harder to work with.
-   Actually, may not be too bad, we just need a lemma to explain how it unfolds. *)
-Definition is_winning (game: impartial_game) : position game -> Prop.
-  refine (Fix (finite_game game)
-            (fun _ => Prop)
-            (fun x H => exists (s : position game) (p: valid_move game s x),
-                           ~ (H s p))).
-Defined.
-
 Section Winning.
   Variable game: impartial_game.
   Let S := position game.
@@ -62,34 +31,12 @@ Section Winning.
   Defined.
   Hint Resolve not_both_winning_losing : core.
 
-
   Lemma losing_implies_not_winning : forall (s : S), losing_state s -> ~ winning_state s.
     intros s H.
     pose (not_both_winning_losing s).
     unfold not in *.
     intuition.
   Qed.
-
-  (* If we have two predicates P and Q and a list l where we can decide either P or Q,
-then either there is s such that Q s, or we have P s for all s.
-   *)
-  Lemma exists_in_list {A : Type} : forall (P Q : A -> Prop) (l : list A), (forall x, In x l -> (P x) + (Q x)) -> (Exists Q l) + (Forall P l).
-  Proof.
-    induction l; intuition.
-    match goal with
-    | [ a : A, Dec : forall x, _ -> _, IH: _ -> Exists Q l + Forall P l |- _ ] => destruct (Dec a); destruct IH; intuition
-    end.
-  Defined.
-
-  (* A state is either winning or losing. We prove this by demonstrating how to compute the outcome of a state by recursing on the well-founded game tree of moves. *)
-  Definition get_outcome : forall s, winning_state s + losing_state s.
-    refine (Fix (finite_game game) (fun s => sum (winning_state s) (losing_state s)) _).
-    intros x IH.
-    destruct (exists_in_list _ _ _ IH) as [Hexists | Hforall].
-    - rewrite -> Exists_exists in Hexists; left; destruct Hexists as [y [? ?]]; econstructor; eauto.
-    - rewrite -> Forall_forall in Hforall; right; constructor; auto.
-  Defined.
-  Hint Resolve get_outcome : core.
 
   Fixpoint existsb_In {A} (l : list A) : (forall (x : A), In x l -> bool) -> bool :=
     match l with
@@ -174,9 +121,6 @@ then either there is s such that Q s, or we have P s for all s.
     apply get_outcome_b_ext.
   Qed.
 
-
-  Check reflect.
-
   Lemma w_reflect':
     forall s, (get_outcome_b s = true -> winning_state s) /\
                 (get_outcome_b s = false -> losing_state s).
@@ -204,6 +148,11 @@ then either there is s such that Q s, or we have P s for all s.
       apply losing_implies_not_winning. assumption.
   Qed.
 
+  Lemma winning_or_losing : forall s, winning_state s + losing_state s.
+    intros.
+    pose proof (w_reflect' s) as [? ?].
+    destruct (get_outcome_b s) eqn:?; auto.
+  Qed.
 
   (* If we have two predicates P and Q that are disjoint and at least one is true, then P <-> ~ Q and Q <-> ~ P. *)
   Lemma dec_disjoint_implies_negation {A : Type} : forall (P Q : A -> Prop), (forall s, ~ (P s /\ Q s)) -> (forall s, P s + Q s) -> (forall s, (P s <-> ~ Q s) /\ (Q s <-> ~ P s)).
@@ -214,13 +163,8 @@ then either there is s such that Q s, or we have P s for all s.
   Qed.
 
   Lemma losing_equiv_not_winning : forall s, losing_state s <-> ~ winning_state s.
-    apply dec_disjoint_implies_negation; auto.
-  Qed.
-
-  Lemma winning_or_losing : forall s, winning_state s + losing_state s.
-    intros.
-    destruct (w_reflect s);
-    [ auto | right; apply losing_equiv_not_winning; auto ].
+    apply dec_disjoint_implies_negation, winning_or_losing.
+    apply not_both_winning_losing.
   Qed.
 
   Lemma winning_decidable : forall s, winning_state s + ~ (winning_state s).
@@ -242,49 +186,6 @@ then either there is s such that Q s, or we have P s for all s.
   Qed.
 
 End Winning.
-
-Inductive game := Game {
-                      moves_from_game : list game
-                    }.
-
-Lemma lift_forall : forall T (P : T -> Prop), (forall t, P t) -> forall l, Forall P l.
-Proof. induction l; auto. Defined.
-
-Definition game_ind' (P : game -> Prop)
-  (H : forall l, Forall P l -> P (Game l)) :
-  forall g, P g := fix F g :=
-    match g with
-    | Game l => H l (lift_forall _ P F l)
-    end.
-
-Check game_ind'.
-
-Fixpoint is_winning_game (g : game) : bool :=
-  match g with
-  | {| moves_from_game := moves |} =>
-      existsb (fun x => negb (is_winning_game x)) moves
-  end.
-
-(* Example of a game: nim. *)
-Fixpoint nim (n : nat) : game :=
-  let moves := (fix f (m : nat) :=
-                  match m with
-                  | 0 => []
-                  | S m' => nim m' :: f m'
-                  end)
-  in Game (moves n).
-
-Eval vm_compute in is_winning_game (nim 11).
-
-
-
-Check get_outcome.
-Definition extract_outcome {game : impartial_game} {s : position game} (outcome : winning_state game s + losing_state game s) : bool :=
-  match outcome with
-  | inl _ => false
-  | inr _ => true
-  end.
-
 
 Definition zero : impartial_game.
   refine {|
