@@ -56,9 +56,9 @@ Section Mex.
   Definition mex_defn : { m | is_mex m }.
   Proof.
     destruct mex_bound as [b H].
-    enough (forall k, k <= b -> (forall x, x <= k -> In x l) + { m | m <= k /\ is_mex m }) as IH.
+    enough (forall k, (forall x, x <= k -> In x l) + { m | m <= k /\ is_mex m }) as IH.
     {
-    destruct (IH b) as [? | ?]. lia.
+    destruct (IH b) as [? | ?].
     - specialize i with b.
         apply H in i. contradiction. lia.
     - destruct s as [m [? Hm]].
@@ -66,13 +66,13 @@ Section Mex.
     }
     refine (N.peano_rect _ _ _); intros.
     - destruct (not_in_dec 0).
-      + left. intros. assert (x = 0). lia. rewrite H2. auto.
+      + left. intros. assert (x = 0). lia. rewrite H1. auto.
       + right. constructor 1 with 0; unfold is_mex; intuition; lia.
-    - destruct H0 as [? | ?]. lia.
+    - destruct H0 as [? | ?].
       + destruct (not_in_dec (N.succ n)).
         * left; intros. assert (x <= n \/ x = N.succ n). lia.
-          destruct H2; auto.
-          rewrite H2. auto.
+          destruct H1; auto.
+          rewrite H1. auto.
         * right. constructor 1 with (N.succ n); unfold is_mex; intuition.
           assert (n1 <= n). lia. apply i; auto.
       + destruct s as [m [? ?]].

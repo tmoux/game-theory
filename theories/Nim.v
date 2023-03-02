@@ -3,73 +3,58 @@ From Coq Require Import BinNat Nnat.
 Require Import Lia.
 
 Open Scope N_scope.
-Fixpoint nums_lt (n : nat) : list N :=
-  match n with
-  | 0%nat => []
-  | S n' => N.of_nat n' :: nums_lt n'
-  end.
+Definition nums_lt : N -> list N :=
+  (N.recursion [] (fun n l => n :: l)).
 
 Lemma nums_lt_spec : forall n m,
-    In (N.of_nat m) (nums_lt n) <-> (m < n)%nat.
+    In m (nums_lt n) <-> (m < n).
 Proof.
   split; intuition.
-  induction n.
-  inversion H.
-  simpl in H.
-  destruct H.
-  apply Nat2N.inj in H; subst; auto.
-  apply IHn in H; auto.
-
-  induction n.
-  inversion H.
-  simpl.
-  inversion H; subst; auto.
+  - induction n using N.peano_ind.
+    inversion H.
+    unfold nums_lt in H.
+    rewrite N.recursion_succ in H; intuition.
+    destruct H. lia.
+    fold nums_lt in H.
+    apply IHn in H; lia.
+  - induction n using N.peano_ind.
+    lia.
+    unfold nums_lt. rewrite N.recursion_succ; intuition.
+    fold nums_lt.
+    simpl.
+    cut (m < n \/ n = m); [ intros [? | ?]; auto | lia ].
 Qed.
 
 Definition Nim (n : N) : impartial_game.
   refine {|
            position := N;
            start := n;
-           moves := fun x => nums_lt (N.to_nat x);
+           moves := fun x => nums_lt x;
            finite_game := _
          |}.
   unfold well_founded.
   intros a.
-  rewrite <- N2Nat.id.
-  enough (forall x, Acc (fun next current : N => In next (nums_lt (N.to_nat current))) (N.of_nat x)) by easy.
-  induction x.
+  enough (forall x, Acc (fun next current : N => In next (nums_lt current)) x) by easy.
+  induction x using N.peano_ind.
   constructor. simpl. intuition.
-  constructor. rewrite Nat2N.id. simpl. intuition.
-  rewrite <- H0. assumption.
-  apply IHx. rewrite Nat2N.id. assumption.
+  constructor. intros.
+  unfold nums_lt in H; rewrite N.recursion_succ in H; intuition.
+  simpl in H; fold nums_lt in H.
+  destruct H.
+  rewrite <- H. assumption.
+  apply IHx. assumption.
 Defined.
 
-(* This is really dumb, just rewrite everything using nats. *)
 Corollary nim_moves_spec :
   forall {m} (n n' : N),
     valid_move (Nim m) n' n <-> n' < n.
   intros.
-  unfold valid_move.
-  rewrite <- (N2Nat.id n').
-  rewrite <- (N2Nat.id n).
-  transitivity (N.to_nat n' < N.to_nat n)%nat.
-  simpl.
-  rewrite Nat2N.id.
   apply nums_lt_spec.
-  lia.
 Qed.
 
 Corollary a_not_in_moves :
   forall {m} (n : N), valid_move (Nim m) n n -> False.
-  intros.
-  unfold valid_move in H; simpl in H.
-  assert (n = N.of_nat (N.to_nat n)).
-  rewrite N2Nat.id; reflexivity.
-  rewrite H0 in H.
-  apply nums_lt_spec in H.
-  rewrite N2Nat.id in H.
-  apply PeanoNat.Nat.lt_irrefl in H.
-  assumption.
+  intros ? ?. rewrite nim_moves_spec. lia.
 Qed.
 
 Lemma nim_0_losing : get_outcome_b (Nim 0) 0 = false.
@@ -77,24 +62,6 @@ Lemma nim_0_losing : get_outcome_b (Nim 0) 0 = false.
   simpl.
   reflexivity.
 Qed.
-
-(*
-Theorem nim_zero_is_zero : Nim 0 == zero.
-  unfold equivalent.
-  apply sum_losing_is_losing; simpl.
-  constructor; intros. inversion H.
-  constructor; intros. inversion H.
-Qed. *)
-(* Set Printing Coercions. *)
-Check N.
-Check N_of_nat.
-Check N.lxor.
-
-Compute (N.lxor 3 4).
-Check Nim.
-
-(* Coercion N.of_nat : nat >-> N. *)
-(* Coercion N.to_nat : N >-> nat. *)
 
 Lemma xor_pos_3 : forall x p a b c,
     N.pos p = x ->
@@ -112,10 +79,6 @@ Lemma xor_pos_3 : forall x p a b c,
   repeat (rewrite N.lxor_spec in H1).
   subst.
   rewrite Heqb0, Heqb1, Heqb2 in H1. simpl in H1. discriminate.
-Qed.
-
-Lemma lt_nat_n_equiv : forall x y, (x < y) <-> (N.to_nat x < N.to_nat y)%nat.
-  lia.
 Qed.
 
 Lemma log2_bits_diff_lt : forall k A B,
@@ -256,10 +219,8 @@ Lemma nim_xor_move (x : N) : forall A B,
     valid_move (Nim x) (N.lxor A B) A.
   intros.
   apply (xor_lt A B) in H; auto.
-  apply lt_nat_n_equiv in H.
   unfold valid_move.
   simpl.
-  rewrite <- N2Nat.id at 1.
   apply nums_lt_spec; auto.
 Qed.
 
