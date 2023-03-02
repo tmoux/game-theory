@@ -115,37 +115,3 @@ Qed.
   rewrite H.
   reflexivity.
 Qed.
-
-(*
-Definition equiv' (a b : impartial_game) := forall c, losing_state (a ~+~ c) (start (a ~+~ c)) <-> losing_state (b ~+~ c) (start (b ~+~ c)).
-
-#[export] Instance equiv'_equiv : Equivalence equiv'.
-Proof.
-  constructor.
-  unfold Reflexive; intros.
-  unfold equiv'.
-  intuition.
-  unfold Symmetric; intros.
-  unfold equiv' in *. intros c. specialize H with c. intuition.
-  unfold Transitive; intros.
-  unfold equiv' in *.
-  intros c; specialize H with c; specialize H0 with c. intuition.
-Qed.
-
-#[export] Instance sum_proper_equiv' : Proper (equiv' ==> equiv' ==> equiv') sum_game.
-Proof.
-  unfold Proper.
-  unfold respectful.
-  intros.
-  unfold equiv' in *.
-  intros c.
-  intuition.
-  specialize H with (y0 ~+~ c).
-  admit.
-  specialize H with (x0 ~+~ c).
-  apply <- H.
-  intuition.
-  apply H.
-  constructor.
-  admit.
-*)

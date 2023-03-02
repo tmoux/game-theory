@@ -2,7 +2,8 @@
 
 ./theories/ImpartialGame.v
 ./theories/SumGames.v
+./theories/Boolgroup.v
 ./theories/Bijection.v
 ./theories/Equiv.v
-./theories/Boolgroup.v
 ./theories/Nim.v
+./theories/Grundy.v

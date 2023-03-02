@@ -294,25 +294,3 @@ Definition zero : impartial_game.
   |}.
   constructor; intros y H; inversion H.
 Defined.
-
-(*
-Definition embed_in_game cg (pos : position cg) : game :=
-  Fix (finite_game cg)
-      (fun _ => position game_as_cg)
-      (fun pos F =>
-         {| moves_from_game := (map_game cg pos F) |}
-      pos). *)
-
-(*
-Rewrite using sections to reduce repeating parameters.
-Define game trees (see Poleiro blog).
-Define Nim game
-Define sum of games.
-  Show sum of two identical games is always losing.
-Define equivalence of games (if they have effect when summing).
-Or equivalently, two game are equal if they sum to the zero game. (i.e., are losing)
-
-Prove nim XOR result.
-Prove equivalence of nim-with-increases.
-Prove Sprague-Grundy theorem.
- *)

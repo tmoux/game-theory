@@ -2,32 +2,96 @@ From GameTheory Require Import ImpartialGame Boolgroup SumGames Equiv Nim.
 Require Import Lia.
 Require Import BinNat.
 
-(* TODO: define mex in terms of N to make things easier (use peano_rect) *)
-(* Fill in proof of specification of mex *)
-(* May need to have unfolding lemma for grundy defn. *)
-(* Need to prove extensionality property like for existsb. *)
-(* Prove SG theorem *)
-Fixpoint mex' (l : list N) (m n : N) : N.
-  Check N.recursion.
-Admitted.
+Definition mx_N_list (l : list N) : N := fold_right N.max 0 l.
+Check list_max_le.
+Lemma max_lt : forall (l : list N) (n : N),
+    mx_N_list l < n ->
+    Forall (fun k => k < n) l.
+Proof.
+  induction l; auto.
+  intros n H.
+  simpl in H.
+  constructor.
+  lia.
+  apply IHl.
+  lia.
+Qed.
 
-Definition mex (l: list N) : N :=
-  let len := N.of_nat (length l) in
-  N.recursion len
-    (fun n res : N => if existsb (N.eqb (len - N.succ n)) l
-                      then res
-                      else (len - N.succ n))
-    len.
-Print mex.
+Section Mex.
+  Variable l : list N.
+  Definition is_mex (m : N) :=
+    (forall n, n < m -> In n l) /\ ~ In m l.
 
-Compute (mex [0; 1; 2; 3; 4]).
+  Lemma mex_unique : forall m m',
+      is_mex m -> is_mex m' -> m = m'.
+  Proof using l.
+    intros.
+    repeat (match goal with
+            | H : is_mex ?x |- _ => destruct H as [? ?]
+            end).
+    destruct (N.lt_trichotomy m m') as [? | [? | ?]];
+    repeat (match goal with
+    | E : ?x < ?y, H1 : forall n, n < ?y -> In n l, H2 : ~ In ?x l |- _ =>
+      specialize H1 with x; apply H2 in H1; auto; contradiction
+    | E : ?x = ?y |- ?x = ?y => assumption
+    end).
+  Qed.
 
-Lemma mex_lt : forall (l : list N), (forall n, n < mex l -> In n l).
-Admitted.
+  Lemma not_in_dec : forall x, {In x l} + {~ In x l}.
+  Proof.
+    intros x.
+    destruct (in_dec N.eq_dec x l); auto.
+  Defined.
 
-Lemma mex_neq : forall (l : list N), ~ In (mex l) l.
-Admitted.
+  Lemma mex_bound : { m | ~ In m l}.
+    constructor 1 with (mx_N_list l + 1).
+    pose proof (max_lt l (mx_N_list l + 1)).
+    rewrite Forall_forall in H.
+    unfold not; intros.
+    apply H in H0; lia.
+  Defined.
 
+  Definition mex_defn : { m | is_mex m }.
+  Proof.
+    destruct mex_bound as [b H].
+    enough (forall k, k <= b -> (forall x, x <= k -> In x l) + { m | m <= k /\ is_mex m }) as IH.
+    {
+    destruct (IH b) as [? | ?]. lia.
+    - specialize i with b.
+        apply H in i. contradiction. lia.
+    - destruct s as [m [? Hm]].
+      constructor 1 with m. assumption.
+    }
+    refine (N.peano_rect _ _ _); intros.
+    - destruct (not_in_dec 0).
+      + left. intros. assert (x = 0). lia. rewrite H2. auto.
+      + right. constructor 1 with 0; unfold is_mex; intuition; lia.
+    - destruct H0 as [? | ?]. lia.
+      + destruct (not_in_dec (N.succ n)).
+        * left; intros. assert (x <= n \/ x = N.succ n). lia.
+          destruct H2; auto.
+          rewrite H2. auto.
+        * right. constructor 1 with (N.succ n); unfold is_mex; intuition.
+          assert (n1 <= n). lia. apply i; auto.
+      + destruct s as [m [? ?]].
+        right. constructor 1 with m; intuition; lia.
+  Defined.
+
+  Definition mex : N := let (m, _) := mex_defn in m.
+  Lemma mex_lt : (forall n, n < mex -> In n l).
+    unfold mex.
+    destruct mex_defn as [? [? ?]].
+    auto.
+  Qed.
+
+  Lemma mex_neq :  ~ In (mex) l.
+    unfold mex.
+    destruct mex_defn as [? [? ?]].
+    auto.
+  Qed.
+End Mex.
+
+Compute (mex [0; 1; 2; 3; 4; 6]).
 
 Fixpoint map_In {A B} (l : list A) : (forall (x : A), In x l -> B) -> list B :=
   match l with
