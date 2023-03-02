@@ -22,6 +22,8 @@ Section Mex.
   Definition is_mex (m : N) :=
     (forall n, n < m -> In n l) /\ ~ In m l.
 
+  (* We do not use this lemma, but this gives us some confidence that mex is in fact *)
+  (* a well-defined function, rather than just a relation between lists and Ns. *)
   Lemma mex_unique : forall m m',
       is_mex m -> is_mex m' -> m = m'.
   Proof using l.
@@ -33,7 +35,7 @@ Section Mex.
     repeat (match goal with
     | E : ?x < ?y, H1 : forall n, n < ?y -> In n l, H2 : ~ In ?x l |- _ =>
       specialize H1 with x; apply H2 in H1; auto; contradiction
-    | E : ?x = ?y |- ?x = ?y => assumption
+    | |- _ => auto
     end).
   Qed.
 

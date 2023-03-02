@@ -5,3 +5,8 @@ This includes:
 - Equivalence of games.
 - Equivalence of sum of Nim games to a single Nim game.
 - Grundy numbers and Sprague-Grundy theorem.
+
+## Building
+
+Run `make`.
+This also builds clickable HTML pages, courtesy of [CoqDocJS](https://github.com/coq-community/coqdocjs).
