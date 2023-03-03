@@ -1,5 +1,6 @@
 -R ./theories GameTheory
 
+./theories/In.v
 ./theories/ImpartialGame.v
 ./theories/SumGames.v
 ./theories/Boolgroup.v

@@ -1,6 +1,15 @@
+(** * Defining Impartial Games *)
+
+From GameTheory Require Export In.
 From Coq Require Export List.
 Export ListNotations.
-Require Export Coq.Bool.Bool.
+
+(** We define an impartial game as the following structure: *)
+(** - A type of positions, *)
+(** - A start position, *)
+(** - A function mapping states to valid next moves, *)
+(** - A proof that the induced relation between moves is well founded (corresponding to the fact that any game must terminate). *)
+(** This is adapted from a #<a href="http://poleiro.info/posts/2013-09-08-an-introduction-to-combinatorial-game-theory.html">blog post </a># from the Polero blog. *)
 
 Inductive impartial_game :=
   ImpartialGame {
@@ -12,6 +21,12 @@ Inductive impartial_game :=
     }.
 Check ImpartialGame.
 
+(** We define the notion of _winning_ and _losing_ states. *)
+(** A state is winning if there is at least one transition to a losing state, *)
+(** and a state is losing if all transitions are to a winning state. *)
+(** The advantage of defining winning and losing like this is that it is quite natural and aligns with how winning and losing is usually understood. *)
+(** One downside is that it is not immediately clear that these two notions are mutually exclusive, or that a state must be either winning or losing. *)
+
 Section Winning.
   Variable game: impartial_game.
   Let S := position game.
@@ -21,14 +36,14 @@ Section Winning.
   with losing_state : S -> Prop :=
   | all_winning : forall (s : S), (forall (s' : S), valid_move game s' s -> winning_state s') -> losing_state s.
 
-  (* A state cannot be both winning and losing at the same time. *)
+  (** A state cannot be both winning and losing at the same time. *)
   Lemma not_both_winning_losing : forall (s : S), ~ ((winning_state s) /\ (losing_state s)).
     apply (well_founded_induction (finite_game game)); intuition.
     match goal with
     | [ H : forall y, _ -> _ -> False, H1 : winning_state ?x, H2: losing_state ?x |- _ ] =>
         destruct H1 as [s s' H1]; destruct H2; apply H with s'; auto
     end.
-  Defined.
+  Qed.
   Hint Resolve not_both_winning_losing : core.
 
   Lemma losing_implies_not_winning : forall (s : S), losing_state s -> ~ winning_state s.
@@ -38,12 +53,6 @@ Section Winning.
     intuition.
   Qed.
 
-  Fixpoint existsb_In {A} (l : list A) : (forall (x : A), In x l -> bool) -> bool :=
-    match l with
-    | [] => fun _ => false
-    | x :: xs => fun f =>
-                   orb (f x (or_introl _ eq_refl)) (existsb_In xs (fun x P => f x (or_intror _ P)))
-    end.
 
   Definition get_outcome_b : S -> bool :=
   Fix (finite_game game) (fun _ : position game => bool)
@@ -52,46 +61,6 @@ Section Winning.
     existsb_In (moves game s)
       (fun (x : position game) (HIn : In x (moves game s)) => negb (F x HIn))).
 
-  Lemma existsb_In_existsb {A : Type} :
-    forall (l : list A)
-           (f : forall x, In x l -> bool)
-           (g : A -> bool)
-           (H : forall x P, f x P = g x),
-    existsb_In l f = existsb g l.
-    induction l; auto.
-    intros.
-    simpl.
-    rewrite H.
-    apply f_equal.
-    apply IHl; auto.
-  Qed.
-
-  Lemma existsb_false {A : Type}:
-    forall (l : list A)
-           (f : A -> bool),
-           existsb f l = false ->
-           (forall x, In x l -> f x = false).
-    induction l; intuition.
-    inversion H0.
-    inversion H0; subst.
-    simpl in H. apply orb_false_iff in H. intuition.
-    apply IHl; auto.
-    simpl in H. apply orb_false_iff in H; intuition.
-  Qed.
-
-  Lemma existsb_In_ext :
-    forall A
-           (l : list A)
-           (f g: forall x, In x l -> bool)
-           (EXT : forall x P, f x P = g x P),
-    existsb_In l f = existsb_In l g.
-    intros.
-    induction l as [ | x l IH ]; auto.
-    simpl.
-    rewrite EXT.
-    f_equal.
-    apply IH; auto.
-  Qed.
 
   Lemma get_outcome_b_ext:
     forall
@@ -151,10 +120,10 @@ Section Winning.
   Lemma winning_or_losing : forall s, winning_state s + losing_state s.
     intros.
     pose proof (w_reflect' s) as [? ?].
-    destruct (get_outcome_b s) eqn:?; auto.
+    destruct (get_outcome_b s); auto.
   Qed.
 
-  (* If we have two predicates P and Q that are disjoint and at least one is true, then P <-> ~ Q and Q <-> ~ P. *)
+  (** If we have two predicates P and Q that are disjoint and at least one is true, then P <-> ~ Q and Q <-> ~ P. *)
   Lemma dec_disjoint_implies_negation {A : Type} : forall (P Q : A -> Prop), (forall s, ~ (P s /\ Q s)) -> (forall s, P s + Q s) -> (forall s, (P s <-> ~ Q s) /\ (Q s <-> ~ P s)).
     intros ? ? H1 H2 s.
     specialize (H1 s).
