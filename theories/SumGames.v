@@ -9,8 +9,8 @@ Definition cg_pair_order {cg1 cg2} :=
 Definition cg_pair_order_wf {cg1 cg2} : well_founded cg_pair_order :=
   wf_symprod _ _ _ _ (finite_game cg1) (finite_game cg2).
 
+(** Adapted from https://github.com/arthuraa/poleiro/blob/master/theories/CGT2.v *)
 Definition sum_game (a b : impartial_game) : impartial_game.
-  (* Adapted from https://github.com/arthuraa/poleiro/blob/master/theories/CGT2.v *)
   refine {|
       position := position a * position b;
       start := (start a, start b);
@@ -56,7 +56,13 @@ Proof.
       [ left | right ]; apply in_map_iff; [ exists p1 | exists p2 ]; auto.
 Qed.
 
-(* Transitive closure of relation adapted from https://madiot.fr/pso/tp6.html *)
+Ltac valid_move_sum_left :=
+  apply moves_in_game_sum; left; simpl; intuition.
+Ltac valid_move_sum_right :=
+  apply moves_in_game_sum; right; simpl; intuition.
+
+
+(** Transitive closure of relation: adapted from https://madiot.fr/pso/tp6.html *)
 Inductive trans {A} (R : relation A) : relation A :=
   | rel_same : forall x y, R x y -> trans R x y
   | rel_trans : forall x y z, R x y -> R y z -> trans R x z.

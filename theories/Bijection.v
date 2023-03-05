@@ -60,22 +60,21 @@ Lemma sum_assoc_bijec : forall a b c, (a ~+~ (b ~+~ c)) ~~ ((a ~+~ b) ~+~ c).
            (fun s => match s with (x, (y, z)) => ((x, y), z) end)
            (fun s => match s with ((x, y), z) => (x, (y, z)) end)); simpl in *; intuition.
   - destruct s' as [x [y z]]. apply moves_in_game_sum in H as [[? ?] | [? ?]]; simpl in *. inversion H0; subst.
-    apply moves_in_game_sum; left; intuition; simpl.
-    apply moves_in_game_sum; left; intuition; simpl.
+    valid_move_sum_left.
+    valid_move_sum_left.
 
     apply moves_in_game_sum in H as [[? ?] | [? ?]]; simpl in *; subst.
-    apply moves_in_game_sum; left; intuition; simpl.
-    apply moves_in_game_sum; right; intuition; simpl.
-
-    apply moves_in_game_sum; right; intuition; simpl.
+    valid_move_sum_left.
+    valid_move_sum_right.
+    valid_move_sum_right.
   - destruct s' as [[x y] z]. apply moves_in_game_sum in H as [[? ?] | [? ?]]; simpl in *. inversion H0; subst.
     apply moves_in_game_sum in H as [[? ?] | [? ?]]; simpl in *; subst.
-    apply moves_in_game_sum; left; intuition; simpl.
-    apply moves_in_game_sum; right; intuition; simpl.
-    apply moves_in_game_sum; left; intuition; simpl.
+    valid_move_sum_left.
+    valid_move_sum_right.
+    valid_move_sum_left.
     inversion H0; subst.
-    apply moves_in_game_sum; right; intuition; simpl.
-    apply moves_in_game_sum; right; intuition; simpl.
+    valid_move_sum_right.
+    valid_move_sum_right.
 Qed.
 
 Lemma is_losing_bijec : forall a b, a ~~ b -> losing_state a (start a) -> losing_state b (start b).
@@ -116,12 +115,12 @@ Qed.
   - intros [z x]. rewrite H0. reflexivity.
   - intros [z x] [z' x']. intros.
     apply moves_in_game_sum in H4. destruct H4 as [[? ?] | [? ?]]; simpl in *; subst.
-    apply moves_in_game_sum; left; intuition.
-    apply moves_in_game_sum; right; simpl; intuition.
+    valid_move_sum_left.
+    valid_move_sum_right.
   - intros [z y] [z' y']. intros.
     apply moves_in_game_sum in H4. destruct H4 as [[? ?] | [? ?]]; simpl in *; subst.
-    apply moves_in_game_sum; left; intuition.
-    apply moves_in_game_sum; right; simpl; intuition.
+    valid_move_sum_left.
+    valid_move_sum_right.
   - rewrite H3. reflexivity.
 Qed.
 

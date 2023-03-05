@@ -251,8 +251,7 @@ Theorem nim_sum_losing_3 :
     + apply (nim_xor_move x) in Hp; [ | discriminate ].
       match goal with
       | |- winning_state ?g ?cur => assert (Hv : valid_move g (N.lxor A (N.pos p), B, C) cur);
-                                  [ apply moves_in_game_sum; left; intuition; simpl;
-                                    apply moves_in_game_sum; left; intuition; simpl |]
+                                  [ repeat valid_move_sum_left |]
       end.
       apply trans_to_losing with (N.lxor A (N.pos p), B, C); auto.
       (* Show losing by IH *)
@@ -263,8 +262,7 @@ Theorem nim_sum_losing_3 :
     + apply (nim_xor_move y) in Hp; [| discriminate ].
       match goal with
       | |- winning_state ?g ?cur => assert (Hv : valid_move g (A, N.lxor B (N.pos p), C) cur);
-                                  [ apply moves_in_game_sum; left; intuition; simpl;
-                                    apply moves_in_game_sum; right; intuition; simpl |]
+                                  [ valid_move_sum_left; valid_move_sum_right | ]
       end.
       apply trans_to_losing with (A, N.lxor B (N.pos p), C); auto.
       (* Show losing by IH *)
@@ -275,7 +273,7 @@ Theorem nim_sum_losing_3 :
     + apply (nim_xor_move z) in Hp; [| discriminate ].
       match goal with
       | |- winning_state ?g ?cur => assert (Hv : valid_move g (A, B, N.lxor C (N.pos p)) cur);
-                                  [ apply moves_in_game_sum; right; intuition; simpl |]
+                                  [ valid_move_sum_right |]
       end.
       apply trans_to_losing with (A, B, N.lxor C (N.pos p)); auto.
       (* Show losing by IH *)
@@ -294,10 +292,8 @@ Theorem nim_sum_losing_3 :
     specialize IH with (a, b, c).
     pose proof Hm as Hm'.
     apply IH in Hm'.
-    apply moves_in_game_sum in Hm.
-    destruct Hm as [[? ?] | [? ?]]; simpl in *; subst.
-    apply moves_in_game_sum in H0.
-    destruct H0 as [[? ?] | [? ?]]; simpl in *; subst.
+    apply moves_in_game_sum in Hm as [[? ?] | [? ?]]; simpl in *; subst.
+    apply moves_in_game_sum in H0 as [[? ?] | [? ?]]; simpl in *; subst.
     + destruct (winning_or_losing (((Nim x ~+~ Nim y) ~+~ Nim z)) (a, B, C)); auto.
     apply Hm' in l.
     (* Contradiction: this implies a = A, but since a is a valid move from A, *)

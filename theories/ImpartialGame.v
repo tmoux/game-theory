@@ -9,7 +9,7 @@ Export ListNotations.
 (** - A start position, *)
 (** - A function mapping states to valid next moves, *)
 (** - A proof that the induced relation between moves is well founded (corresponding to the fact that any game must terminate). *)
-(** This is adapted from a #<a href="http://poleiro.info/posts/2013-09-08-an-introduction-to-combinatorial-game-theory.html">blog post </a># from the Polero blog. *)
+(** This definition is adapted from a #<a href="http://poleiro.info/posts/2013-09-08-an-introduction-to-combinatorial-game-theory.html">blog post </a># from the Polero blog. *)
 
 Inductive impartial_game :=
   ImpartialGame {
@@ -53,14 +53,12 @@ Section Winning.
     intuition.
   Qed.
 
-
   Definition get_outcome_b : S -> bool :=
   Fix (finite_game game) (fun _ : position game => bool)
     (fun (s : position game)
       (F : forall y : position game, valid_move game y s -> bool) =>
     existsb_In (moves game s)
       (fun (x : position game) (HIn : In x (moves game s)) => negb (F x HIn))).
-
 
   Lemma get_outcome_b_ext:
     forall
@@ -156,6 +154,7 @@ Section Winning.
 
 End Winning.
 
+(** Definition of the zero game. *)
 Definition zero : impartial_game.
   refine {|
     position := unit;

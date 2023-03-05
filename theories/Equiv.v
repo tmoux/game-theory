@@ -14,11 +14,11 @@ Lemma bijection_equiv : forall a b, a ~~ b -> a == b.
   apply moves_in_game_sum in H4; destruct H4 as [[? ?] | [? ?]].
   - destruct s'. simpl in *. subst.
     apply trans_to_losing with (p, (f p)).
-    apply moves_in_game_sum; right. simpl; intuition.
+    valid_move_sum_right.
     apply IH; auto.
   - destruct s'; simpl in *; subst.
     apply trans_to_losing with (g p0, p0).
-    apply moves_in_game_sum; left; simpl; intuition.
+    valid_move_sum_left.
     replace x with (g (f x)); [| apply H0].
     apply H2; auto.
     replace (g p0, p0) with (g p0, f (g p0)).
