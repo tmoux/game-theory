@@ -4,12 +4,13 @@ Require Import Coq.Wellfounded.Lexicographic_Product.
 Require Import Coq.Relations.Relation_Operators.
 Import Relation_Definitions.
 
+(** The definition of a sum of games is adapted from *)
+(** #<a href="https://github.com/arthuraa/poleiro/blob/master/theories/CGT2.v">http://poleiro.info/posts/2013-09-08-an-introduction-to-combinatorial-game-theory.html</a>#  *)
 Definition cg_pair_order {cg1 cg2} :=
   symprod _ _ (valid_move cg1) (valid_move cg2).
 Definition cg_pair_order_wf {cg1 cg2} : well_founded cg_pair_order :=
   wf_symprod _ _ _ _ (finite_game cg1) (finite_game cg2).
 
-(** Adapted from https://github.com/arthuraa/poleiro/blob/master/theories/CGT2.v *)
 Definition sum_game (a b : impartial_game) : impartial_game.
   refine {|
       position := position a * position b;
@@ -38,6 +39,8 @@ Defined.
 
 Notation "a ~+~ b" := (sum_game a b) (at level 31, left associativity).
 
+(** This lemma describes what valid moves look like in a sum of games. *)
+(** We make use of both directions of the implication. *)
 Lemma moves_in_game_sum : forall a b (s s' : position (a ~+~ b)),
     valid_move (a ~+~ b) s' s <->
       (valid_move a (fst s') (fst s) /\ snd s' = snd s) \/
@@ -61,36 +64,32 @@ Ltac valid_move_sum_left :=
 Ltac valid_move_sum_right :=
   apply moves_in_game_sum; right; simpl; intuition.
 
-
 (** Transitive closure of relation: adapted from https://madiot.fr/pso/tp6.html *)
 Inductive trans {A} (R : relation A) : relation A :=
   | rel_same : forall x y, R x y -> trans R x y
   | rel_trans : forall x y z, R x y -> R y z -> trans R x z.
 
-(* TODO: Understand what is going on here. *)
 Lemma Acc_trans (A : Type) (R : relation A) :
   forall x, Acc R x -> Acc (trans R) x.
 Proof.
   intros.
   induction H.
-  constructor; intros.
-  induction H1; auto.
-  eapply Acc_inv.
-  apply H0.
-  apply H2.
+  constructor. intros.
+  destruct H1; auto.
+  apply Acc_inv with y; auto.
   constructor. auto.
 Qed.
 
 Theorem wf_trans : forall (A : Type) (R : relation A),
   well_founded R -> well_founded (trans R).
 Proof.
-  intros A R W x; apply Acc_trans, W.
+  intros A R W x. apply Acc_trans, W.
 Qed.
 
-(* In this proof, we need to go back two steps, not just one. *)
-(* Therefore inducting on the Wf relation of a + b does not give us a strong enough induction principle. *)
-(* Instead we define the transitive closure of this relation, and then prove it is well-founded. *)
-(* Then we use this as our induction principle. *)
+(** In this proof, we need to go back two steps, not just one. *)
+(** Therefore inducting on the Wf relation of a + b does not give us a strong enough induction principle. *)
+(** Instead we define the transitive closure of this relation, and then prove it is well-founded. *)
+(** Then we use this as our induction principle. *)
 Lemma sum_losing_is_losing : forall a b x y,
     losing_state a x ->
     losing_state b y ->
@@ -106,15 +105,15 @@ Proof.
   - inversion H; subst. specialize H2 with p.
     destruct H2; auto.
     apply trans_to_losing with (s', y).
-    apply moves_in_game_sum; left; auto.
+    valid_move_sum_left.
     apply IH; auto.
-    apply rel_trans with (s, y); repeat (apply moves_in_game_sum; left; auto).
+    apply rel_trans with (s, y); valid_move_sum_left.
   - inversion H0; subst. specialize H2 with p0.
     destruct H2; auto.
     apply trans_to_losing with (x, s').
-    apply moves_in_game_sum; right; auto.
+    valid_move_sum_right.
     apply IH; auto.
-    apply rel_trans with (x, s); repeat (apply moves_in_game_sum; right; auto).
+    apply rel_trans with (x, s); valid_move_sum_right.
 Qed.
 
 Lemma z_plus_z_is_losing : forall z, losing_state (z ~+~ z) (start z, start z).
@@ -126,10 +125,10 @@ Proof.
   destruct s'.
   apply moves_in_game_sum in H as [[? ?] | [? ?]]; simpl in *; subst.
   - apply trans_to_losing with (p, p).
-    apply moves_in_game_sum; right; auto.
+    valid_move_sum_right.
     apply IH; auto.
   - apply trans_to_losing with (p0, p0).
-    apply moves_in_game_sum; left; auto.
+    valid_move_sum_left.
     apply IH; auto.
 Qed.
 
@@ -146,5 +145,5 @@ Proof.
   intuition.
   inversion H; subst.
   apply (H4 (start x, s')).
-  apply moves_in_game_sum; right; auto.
+  valid_move_sum_right.
 Qed.

@@ -5,6 +5,7 @@ Definition equiv (a b : impartial_game) := losing_state (a ~+~ b) (start a, star
 Notation "a == b" := (equiv a b) (at level 50).
 
 Lemma bijection_equiv : forall a b, a ~~ b -> a == b.
+Proof.
   intros.
   destruct H.
   enough (forall s, losing_state (a ~+~ b) (s , f s)).
@@ -106,7 +107,6 @@ Proof.
       exact equiv_transitive ].
 Qed.
 
-
 #[export] Instance sum_proper : Proper (equiv ==> equiv ==> equiv) sum_game.
   unfold Proper, respectful; intros.
   rewrite <- H0.
@@ -114,4 +114,27 @@ Qed.
   rewrite (sum_comm_equiv y x0).
   rewrite H.
   reflexivity.
+Qed.
+
+
+(** "Contextual equivalence" definition of equivalence. *)
+
+Definition equiv' (a b : impartial_game) := forall c, losing_state (a ~+~ c) (start a, start c) <-> losing_state (b ~+~ c) (start b, start c).
+
+Lemma equiv_equiv' : forall a b, equiv' a b <-> a == b.
+Proof.
+  unfold equiv'.
+  split; intros.
+  unfold equiv.
+  specialize H with b.
+  apply H.
+  apply z_plus_z_is_losing.
+
+  split; intros.
+  assert ((a ~+~ c) == (b ~+~ c)). rewrite H. reflexivity.
+  apply (is_losing_equiv _ _ H1) in H0.
+  auto.
+  assert ((b ~+~ c) == (a ~+~ c)). rewrite H. reflexivity.
+  apply (is_losing_equiv _ _ H1) in H0.
+  auto.
 Qed.

@@ -182,6 +182,11 @@ Lemma Hind : forall A B, P A B 0 -> forall k, P A B k.
       apply H0; lia.
 Qed.
 
+Ltac destruct_conj :=
+  repeat (match goal with
+          | H : _ /\ _ |- _ => destruct H
+          end).
+
 Lemma xor_lt : forall A B,
     (B <> 0) ->
     N.testbit A (N.log2 B) = true ->
@@ -207,10 +212,13 @@ Lemma xor_lt : forall A B,
          apply H2. lia. }
 
   pose proof (Hind A B P0 (N.log2 A - N.log2 B)).
-  destruct H6 as [H6 | [A' [B' [? [? [? [? [? ?]]]]]]]]; [ lia | ].
-  apply H11.
-  replace (N.log2 A - (N.log2 A - N.log2 B)) with (N.log2 B) in *; [| lia].
-  apply log2_bits_diff_lt with (N.log2 B); auto.
+  destruct H6 as [H6 | [A' [B' ?]]]; [lia | destruct_conj].
+  match goal with
+  | H : _ -> N.lxor ?A ?B < ?A |- N.lxor A B < A =>
+      apply H;
+    replace (N.log2 A - (N.log2 A - N.log2 B)) with (N.log2 B) in *; [| lia];
+    apply log2_bits_diff_lt with (N.log2 B); auto
+  end.
 Qed.
 
 Lemma nim_xor_move (x : N) : forall A B,

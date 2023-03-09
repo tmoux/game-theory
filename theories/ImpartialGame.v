@@ -9,7 +9,7 @@ Export ListNotations.
 (** - A start position, *)
 (** - A function mapping states to valid next moves, *)
 (** - A proof that the induced relation between moves is well founded (corresponding to the fact that any game must terminate). *)
-(** This definition is adapted from a #<a href="http://poleiro.info/posts/2013-09-08-an-introduction-to-combinatorial-game-theory.html">blog post </a># from the Polero blog. *)
+(** This definition is adapted from a #<a href="http://poleiro.info/posts/2013-09-08-an-introduction-to-combinatorial-game-theory.html">blog post</a># from the Polero blog. *)
 
 Inductive impartial_game :=
   ImpartialGame {
@@ -26,10 +26,14 @@ Check ImpartialGame.
 (** and a state is losing if all transitions are to a winning state. *)
 (** The advantage of defining winning and losing like this is that it is quite natural and aligns with how winning and losing is usually understood. *)
 (** One downside is that it is not immediately clear that these two notions are mutually exclusive, or that a state must be either winning or losing. *)
+(** We show this by constructing a recursive decision procedure that will take a state and determine whether it is winning or losing. *)
 
 Section Winning.
   Variable game: impartial_game.
   Let S := position game.
+
+  Fail Inductive winning_state : S -> Prop :=
+  | trans_to_losing : forall (s s' : S), valid_move game s' s -> (~ winning_state s) -> winning_state s.
 
   Inductive winning_state : S -> Prop :=
   | trans_to_losing : forall (s s' : S), valid_move game s' s -> losing_state s' -> winning_state s
@@ -38,6 +42,7 @@ Section Winning.
 
   (** A state cannot be both winning and losing at the same time. *)
   Lemma not_both_winning_losing : forall (s : S), ~ ((winning_state s) /\ (losing_state s)).
+  Proof.
     apply (well_founded_induction (finite_game game)); intuition.
     match goal with
     | [ H : forall y, _ -> _ -> False, H1 : winning_state ?x, H2: losing_state ?x |- _ ] =>
@@ -47,6 +52,7 @@ Section Winning.
   Hint Resolve not_both_winning_losing : core.
 
   Lemma losing_implies_not_winning : forall (s : S), losing_state s -> ~ winning_state s.
+  Proof.
     intros s H.
     pose (not_both_winning_losing s).
     unfold not in *.
@@ -72,6 +78,7 @@ Section Winning.
       existsb_In (moves game x)
         (fun (x0 : position game) (HIn : In x0 (moves game x)) =>
           negb (g x0 HIn)).
+  Proof.
     intros.
     eapply existsb_In_ext.
     intuition.
@@ -81,6 +88,7 @@ Section Winning.
 
   Lemma get_outcome_b_unfold : forall (s : S),
     get_outcome_b s = existsb_In (moves game s) (fun x P => negb (get_outcome_b x)).
+  Proof.
     intros.
     unfold get_outcome_b.
     rewrite Fix_eq.
@@ -91,6 +99,7 @@ Section Winning.
   Lemma w_reflect':
     forall s, (get_outcome_b s = true -> winning_state s) /\
                 (get_outcome_b s = false -> losing_state s).
+  Proof.
     apply (well_founded_induction (finite_game game)); intuition.
     - rewrite get_outcome_b_unfold in H0.
       rewrite existsb_In_existsb with (g := fun x => negb (get_outcome_b x)) in H0; auto.
@@ -108,6 +117,7 @@ Section Winning.
 
   Lemma w_reflect:
     forall s, reflect (winning_state s) (get_outcome_b s).
+  Proof.
     intros.
     destruct (get_outcome_b s) eqn:?; constructor.
     - apply w_reflect'. assumption.
@@ -116,31 +126,33 @@ Section Winning.
   Qed.
 
   Lemma winning_or_losing : forall s, winning_state s + losing_state s.
+  Proof.
     intros.
     pose proof (w_reflect' s) as [? ?].
     destruct (get_outcome_b s); auto.
   Qed.
 
   (** If we have two predicates P and Q that are disjoint and at least one is true, then P <-> ~ Q and Q <-> ~ P. *)
-  Lemma dec_disjoint_implies_negation {A : Type} : forall (P Q : A -> Prop), (forall s, ~ (P s /\ Q s)) -> (forall s, P s + Q s) -> (forall s, (P s <-> ~ Q s) /\ (Q s <-> ~ P s)).
-    intros ? ? H1 H2 s.
-    specialize (H1 s).
-    specialize (H2 s).
+  Lemma dec_disjoint_implies_negation {A : Type} : forall (P Q : A -> Prop), forall s, ~ (P s /\ Q s) -> P s + Q s -> (P s <-> ~ Q s) /\ (Q s <-> ~ P s).
+  Proof.
     intuition.
   Qed.
 
   Lemma losing_equiv_not_winning : forall s, losing_state s <-> ~ winning_state s.
-    apply dec_disjoint_implies_negation, winning_or_losing.
+  Proof.
+    intros s; apply dec_disjoint_implies_negation, winning_or_losing.
     apply not_both_winning_losing.
   Qed.
 
   Lemma winning_decidable : forall s, winning_state s + ~ (winning_state s).
+  Proof.
     intros.
     destruct (w_reflect s); auto.
   Qed.
 
   Lemma get_outcome_b_false :
     forall s, (get_outcome_b s = false) -> losing_state s.
+  Proof.
     intros.
     apply losing_equiv_not_winning.
     destruct (w_reflect s); [ discriminate | auto ].
@@ -148,6 +160,7 @@ Section Winning.
 
   Lemma get_outcome_b_true :
     forall s, (get_outcome_b s = true) -> winning_state s.
+  Proof.
     intros.
     destruct (w_reflect s); [ auto | discriminate].
   Qed.
